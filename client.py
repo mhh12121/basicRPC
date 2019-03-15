@@ -1,17 +1,18 @@
-#coding: utf-8
-#client
+# coding: utf-8
+# client
 import socket
 import time
 import struct
 import socket
 import json
-import redis
+
 
 def rpc(sock,in_,params):
     request = json.dumps({"in":in_,"params":params}) #serialize json
     length_prefix=struct.pack("I",len(request)) #
     sock.sendall(length_prefix)
     sock.sendall(request.encode())
+
     length_prefix=sock.recv(4) #length of response prefix
     length, = struct.unpack("I",length_prefix)#get first value
     body = sock.recv(length).decode()
@@ -21,10 +22,7 @@ def rpc(sock,in_,params):
 
 if __name__ == '__main__':
     
-    r=redis.Redis(host="localhost",port=6379,db=0)
-    r.set('foo','bar')
     
-    print(r.get('foo'))
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     s.connect(("localhost",8100))
     for i in range(10):
@@ -33,9 +31,3 @@ if __name__ == '__main__':
         time.sleep(1)
     s.close()
 
-
-# sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-# sock.connect(("localhost",8100))
-# sock.sendall('hello'.encode())
-# print(sock.recv(1024))
-# sock.close()

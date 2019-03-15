@@ -8,11 +8,28 @@ import threading
 def handle_conn(conn,addr,handlers):
     print(addr,"comes")
     while True:
-        length_prefix = conn.recv(4).decode() #
+        length_prefix = conn.recv(4) #
         if not length_prefix:
             print(addr,"bye")
             conn.close()
-
+            break
+        length, = struct.unpack("I", length_prefix)
+        body = receive(conn,length)  # 请求消息体  
+        request = json.loads(body)
+        in_ = request['in']
+        params = request['params']
+        print(in_, params)
+        handler = handlers[in_]  # 查找请求处理器
+        handler(conn, params)  # 处理请求
+def receive(sock,n):
+    res =[] 
+    while n>0:
+        r=sock.recv(n).decode()
+        if not r: #EOF
+            return res
+        res.append(r)
+        n-=len(r)
+    return ''.join(res)
 def loop(sock,handlers):
     while True:
         conn,addr=sock.accept()
